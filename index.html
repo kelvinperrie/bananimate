@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>banano</title>
+        <style>
+            .animation {
+                height: 100px;
+                width: 100px;
+                background-image: url("images/banana-sprites.png");
+            }
+            #everything {
+                margin: auto;
+                width: 500px;
+                margin-top: 200px;
+            }
+            #controls {
+                display: inline-block;
+                vertical-align: top;
+                width: 200px;
+            }
+            #controls div {
+                cursor: pointer;
+            }
+            #banana-test {
+                display: inline-block;
+                vertical-align: top;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div id="everything">
+            <div id="controls">
+                <div id="dance-trigger">do dance animation</div>
+                <div id="rotate-trigger">do rotate animation</div>
+                <div id="doublerotate-trigger">do double rotate animation</div>
+                <div id="eyes-trigger">do eyes animation</div>
+            </div>
+            <div id="banana-test" class="animation">
+
+            </div>
+        </div>
+
+        <script type="text/javascript" src="scripts/jquery-3.3.1.min.js"></script>
+        <script type="text/javascript">
+            var animation = function(settings) {
+                var self = this;
+                self.settings = settings;
+                self.settings.currentSpriteIndex = 0;
+
+                self.start = function() {
+                    if (typeof self.settings.startCallback === "function") {
+                        self.settings.startCallback(self.settings);
+                    }
+                    self.step();
+                }
+                self.stop = function() {
+                    if (typeof self.settings.completeCallback === "function") {
+                        self.settings.completeCallback(self.settings);
+                    }
+                }
+
+                self.step = function() {
+                    //console.log("in step " + self.settings.currentSpriteIndex)
+                    if(self.settings.currentSpriteIndex > self.settings.sprites.length) {
+                        self.displaySprite(self.settings.spriteSheetSettings.defaultSprite);
+                        self.stop();
+                        return;
+                    }
+                    var sprite = self.settings.sprites[self.settings.currentSpriteIndex];
+                    self.displaySprite(sprite);
+                    self.settings.currentSpriteIndex = self.settings.currentSpriteIndex + 1;
+                    setTimeout(function(){ self.step(); }, self.settings.frameDelay);
+                }
+                self.displaySprite = function(spriteId) {
+                    // console.log("displaying " + spriteId);
+                    var x = (spriteId * self.settings.spriteSheetSettings.spriteWidth) % self.settings.spriteSheetSettings.width;
+                    var y = Math.floor( (spriteId * self.settings.spriteSheetSettings.spriteWidth) / self.settings.spriteSheetSettings.width ) * self.settings.spriteSheetSettings.spriteHeight;
+                    // console.log(""+ x + "," + y);
+                    $(self.settings.element).css("background-position-y", (-1*y).toString()+"px")
+                    $(self.settings.element).css("background-position-x", (-1*x).toString()+"px")
+                }
+            }
+
+            // describes the sheet of sprites we're using
+            var sheetSettings = {
+                width: 1000,
+                height: 1000,
+                spriteWidth: 100,
+                spriteHeight: 100,
+                image: "images/banana-sprites.png",
+                defaultSprite: 0
+            }
+            // some dummy call back methods
+            var startCallback = function(settings) {
+                console.log(settings.name + " animation is starting");
+            }
+            var completeCallback = function(settings) {
+                console.log(settings.name + " animation has completed");
+            }
+
+            // setup some animations
+            var bananaDance = {
+                name: "dance",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [1,2,3,2,1,0,7,8,9,8,7,1,2,3,2,1,0,7,8,9,8,7],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+            var bananaRotate = {
+                name: "rotate",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [12,13,14,15,16,17,18,19,20,21,22,14,13,12],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+            var bananaDoubleRotate = {
+                name: "double rotate",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [12,13,14,15,16,17,18,19,20,21,22,15,16,17,18,19,20,21,22,14,13,12],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+            var bananaBeautifulEyes = {
+                name: "beautiful eyes",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [23,24,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,24,23],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+
+
+            $(document).ready(function() {
+                $("#dance-trigger").on("click",function() {
+                    var anim = new animation(bananaDance);
+                    anim.start();
+                });
+                $("#rotate-trigger").on("click",function() {
+                    var anim = new animation(bananaRotate);
+                    anim.start();
+                });
+                $("#doublerotate-trigger").on("click",function() {
+                    var anim = new animation(bananaDoubleRotate);
+                    anim.start();
+                });
+                $("#eyes-trigger").on("click",function() {
+                    var anim = new animation(bananaBeautifulEyes);
+                    anim.start();
+                });
+            });
+        </script>
+    </body>
+</html>
