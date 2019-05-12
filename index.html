@@ -31,10 +31,13 @@
 
         <div id="everything">
             <div id="controls">
-                <div id="dance-trigger">do dance animation</div>
-                <div id="rotate-trigger">do rotate animation</div>
-                <div id="doublerotate-trigger">do double rotate animation</div>
-                <div id="eyes-trigger">do eyes animation</div>
+                <div class="animation-trigger" data-animationname="Dance" id="dance-trigger">do dance animation</div>
+                <div class="animation-trigger" data-animationname="Rotate" id="rotate-trigger">do rotate animation</div>
+                <div class="animation-trigger" data-animationname="DoubleRotate" id="doublerotate-trigger">do double rotate animation</div>
+                <div class="animation-trigger" data-animationname="BeautifulEyes" id="eyes-trigger">do eyes animation</div>
+                <div class="animation-trigger" data-animationname="Angry" id="angry-trigger">do angry animation</div>
+                <div class="animation-trigger" data-animationname="Turn" id="turn-trigger">do turn animation</div>
+                <div class="animation-trigger" data-animationname="Turny" id="turny-trigger">do lotsa turn animations</div>
             </div>
             <div id="banana-test" class="animation">
 
@@ -59,7 +62,7 @@
                         self.settings.completeCallback(self.settings);
                     }
                 }
-
+                // do each step of the animation, calls itelf until it runs out of sprites
                 self.step = function() {
                     //console.log("in step " + self.settings.currentSpriteIndex)
                     if(self.settings.currentSpriteIndex > self.settings.sprites.length) {
@@ -72,6 +75,7 @@
                     self.settings.currentSpriteIndex = self.settings.currentSpriteIndex + 1;
                     setTimeout(function(){ self.step(); }, self.settings.frameDelay);
                 }
+                // locate the sprite in the sprite sheet and display it (maipulate the sheet so it shows the right sprite)
                 self.displaySprite = function(spriteId) {
                     // console.log("displaying " + spriteId);
                     var x = (spriteId * self.settings.spriteSheetSettings.spriteWidth) % self.settings.spriteSheetSettings.width;
@@ -136,25 +140,44 @@
                 startCallback : startCallback,
                 completeCallback : completeCallback
             }
+            var bananaAngry = {
+                name: "angry nana",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [26,27,28,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,28,27,26],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+            var bananaTurn = {
+                name: "turn",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [30,31,31,31,31,31,30],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+            var bananaTurny = {
+                name: "turny",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [30,31,30,0,30,31,30,0,30,31,30,0,30,31,30,0,30,31,30,0,30,31,30,0,30,31,30],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
 
 
+            var self = this;
             $(document).ready(function() {
-                $("#dance-trigger").on("click",function() {
-                    var anim = new animation(bananaDance);
+
+                $(".animation-trigger").on("click",function() {
+                    var animationName = 'banana'+ $(this).data('animationname');
+                    var anim = new animation(self[animationName]);
                     anim.start();
                 });
-                $("#rotate-trigger").on("click",function() {
-                    var anim = new animation(bananaRotate);
-                    anim.start();
-                });
-                $("#doublerotate-trigger").on("click",function() {
-                    var anim = new animation(bananaDoubleRotate);
-                    anim.start();
-                });
-                $("#eyes-trigger").on("click",function() {
-                    var anim = new animation(bananaBeautifulEyes);
-                    anim.start();
-                });
+
             });
         </script>
     </body>
