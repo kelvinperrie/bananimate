@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>banano</title>
+        <style>
+            .animation {
+                height: 100px;
+                width: 100px;
+                background-image: url("images/banana-sprites.png");
+            }
+            #everything {
+                margin: auto;
+                width: 600px;
+                margin-top: 200px;
+            }
+            #controls {
+                display: inline-block;
+                vertical-align: top;
+                width: 200px;
+            }
+            #controls div, .start-queue-trigger, .stop-queue-trigger {
+                cursor: pointer;
+                border: 1px solid #828282;
+                display: inline-block;
+                background-color: #afafaf;
+                color: #fff;
+                padding: 2px 5px;
+                margin-bottom: 2px;
+                border-radius: 2px;
+                user-select: none;
+            }
+            #banana-test {
+                display: inline-block;
+                vertical-align: top;
+                margin: 0 40px;
+            }
+            #queue-status-display {
+                display: inline-block;
+                vertical-align: top;
+            }
+            .queue-display div {
+                color: gray;
+                margin-left: 5px;
+            }
+            .queue-display div:before  {
+                content:  "⇝ ";
+            }
+        </style>
+    </head>
+    <body>
+
+        <div id="everything">
+            <div id="controls">
+                click to add an animation to the queue:<br/>
+                <div class="animation-trigger" data-animationname="Dance" id="dance-trigger">dance</div>
+                <div class="animation-trigger" data-animationname="Rotate" id="rotate-trigger">rotate</div>
+                <div class="animation-trigger" data-animationname="DoubleRotate" id="doublerotate-trigger">double rotate</div>
+                <div class="animation-trigger" data-animationname="BeautifulEyes" id="eyes-trigger">eyes</div>
+                <div class="animation-trigger" data-animationname="Angry" id="angry-trigger">angry</div>
+                <div class="animation-trigger" data-animationname="Turn" id="turn-trigger">turn</div>
+                <div class="animation-trigger" data-animationname="Turny" id="turny-trigger">lotsa turn</div>
+            </div>
+            <div id="banana-test" class="animation">
+
+            </div>
+            <div id="queue-status-display">
+                <div class="start-queue-trigger">start queue</div>
+                <div class="stop-queue-trigger">stop queue</div>
+                <div class="queue-status"></div><br/>
+                animations in the queue:
+                <div class="queue-display"></div><br/><br/>
+            </div>
+        </div>
+
+        <script type="text/javascript" src="scripts/jquery-3.3.1.min.js"></script>
+        <script type="text/javascript">
+
+            var queue = function() {
+                var self = this;
+                self.queue = [];
+                self.status = "stopped";
+
+                self.add = function(newAnimation) {
+                    var completeCallback = function() {
+                                self.removeFirst();
+                                self.processQueue();
+                            }
+                    newAnimation.settings.completeCallback = completeCallback;
+
+                    self.queue.push(newAnimation);
+                    self.updateQueueStatusDisplay();
+                }
+                self.removeFirst = function() {
+                    console.log("there is " + self.queue.length + " items in the queue")
+                    self.queue.shift();
+                    console.log("now there is " + self.queue.length + " items in the queue")
+                    self.updateQueueStatusDisplay();
+                }
+                self.startQueue = function() {
+                    self.status = "running";
+                    self.updateQueueStatusDisplay();
+                    self.processQueue();
+                }
+                self.stopQueue = function() {
+                    self.status = "stopped";
+                    self.updateQueueStatusDisplay();
+                }
+                self.processQueue = function() {
+                    if(self.queue.length > 0) {
+                        if(self.status == "running") {
+
+                            console.log(self.queue[0]);
+                            self.queue[0].start();
+                        }
+                    } else {
+                        self.stopQueue();
+                    }
+                }
+                self.updateQueueStatusDisplay = function() {
+                    $(".queue-status").text("status: " + self.status);
+                    var queueHtml = "";
+                    for(var i=0;i<self.queue.length;i++){
+                        queueHtml += "<div>" + self.queue[i].settings.name + "</div>";
+                    }
+                    $(".queue-display").html(queueHtml);
+                }
+                self.updateQueueStatusDisplay();
+            }
+
+            var animation = function(settings) {
+                var self = this;
+                self.settings = settings;
+
+                self.start = function() {
+                    self.settings.currentSpriteIndex = 0;
+                    if (typeof self.settings.startCallback === "function") {
+                        self.settings.startCallback(self.settings);
+                    }
+                    self.step();
+                }
+                self.stop = function() {
+                    if (typeof self.settings.completeCallback === "function") {
+                        self.settings.completeCallback(self.settings);
+                    }
+                }
+                // do each step of the animation, calls itelf until it runs out of sprites
+                self.step = function() {
+                    //console.log("in step " + self.settings.currentSpriteIndex)
+                    if(self.settings.currentSpriteIndex > self.settings.sprites.length) {
+                        self.displaySprite(self.settings.spriteSheetSettings.defaultSprite);
+                        self.stop();
+                        return;
+                    }
+                    var sprite = self.settings.sprites[self.settings.currentSpriteIndex];
+                    self.displaySprite(sprite);
+                    self.settings.currentSpriteIndex = self.settings.currentSpriteIndex + 1;
+                    setTimeout(function(){ self.step(); }, self.settings.frameDelay);
+                }
+                // locate the sprite in the sprite sheet and display it (maipulate the sheet so it shows the right sprite)
+                self.displaySprite = function(spriteId) {
+                    // console.log("displaying " + spriteId);
+                    var x = (spriteId * self.settings.spriteSheetSettings.spriteWidth) % self.settings.spriteSheetSettings.width;
+                    var y = Math.floor( (spriteId * self.settings.spriteSheetSettings.spriteWidth) / self.settings.spriteSheetSettings.width ) * self.settings.spriteSheetSettings.spriteHeight;
+                    // console.log(""+ x + "," + y);
+                    $(self.settings.element).css("background-position-y", (-1*y).toString()+"px")
+                    $(self.settings.element).css("background-position-x", (-1*x).toString()+"px")
+                }
+            }
+
+            // describes the sheet of sprites we're using
+            var sheetSettings = {
+                width: 1000,
+                height: 1000,
+                spriteWidth: 100,
+                spriteHeight: 100,
+                image: "images/banana-sprites.png",
+                defaultSprite: 0
+            }
+            // some dummy call back methods
+            var startCallback = function(settings) {
+                console.log(settings.name + " animation is starting");
+            }
+            var completeCallback = function(settings) {
+                console.log(settings.name + " animation has completed");
+            }
+
+            // setup some animations
+            var bananaDance = {
+                name: "dance",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [1,2,3,2,1,0,7,8,9,8,7,1,2,3,2,1,0,7,8,9,8,7],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+            var bananaRotate = {
+                name: "rotate",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [12,13,14,15,16,17,18,19,20,21,22,14,13,12],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+            var bananaDoubleRotate = {
+                name: "double rotate",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [12,13,14,15,16,17,18,19,20,21,22,15,16,17,18,19,20,21,22,14,13,12],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+            var bananaBeautifulEyes = {
+                name: "beautiful eyes",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [23,24,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,24,23],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+            var bananaAngry = {
+                name: "angry nana",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [26,27,28,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,28,27,26],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+            var bananaTurn = {
+                name: "turn",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [30,31,31,31,31,31,30],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+            var bananaTurny = {
+                name: "turny",
+                spriteSheetSettings: sheetSettings,
+                frameDelay: 50,
+                element: "#banana-test",
+                sprites : [30,31,30,0,30,31,30,0,30,31,30,0,30,31,30,0,30,31,30,0,30,31,30,0,30,31,30],
+                startCallback : startCallback,
+                completeCallback : completeCallback
+            }
+
+
+            var self = this;
+            $(document).ready(function() {
+
+                var bananaQueue = new queue();
+
+                $(".start-queue-trigger").on("click",function() {
+                    bananaQueue.startQueue();
+                });
+                $(".stop-queue-trigger").on("click",function() {
+                    bananaQueue.stopQueue();
+                });
+
+                $(".animation-trigger").on("click",function() {
+                    var animationName = 'banana'+ $(this).data('animationname');
+                    var anim = new animation(self[animationName]);
+                    bananaQueue.add(anim);
+                });
+
+            });
+        </script>
+    </body>
+</html>
