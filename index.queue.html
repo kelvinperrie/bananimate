@@ -77,10 +77,12 @@
 
             var queue = function() {
                 var self = this;
-                self.queue = [];
-                self.status = "stopped";
+                self.queue = [];            // collection of animations
+                self.status = "stopped";    // status of whether the queue is running/stopped
 
+                // adds an animation to the queue
                 self.add = function(newAnimation) {
+                    // setup a complete callback so when an animation is done it will be removed from the queue and we go to process the next one
                     var completeCallback = function() {
                                 self.removeFirst();
                                 self.processQueue();
@@ -90,10 +92,9 @@
                     self.queue.push(newAnimation);
                     self.updateQueueStatusDisplay();
                 }
+                // removes the first animation in the queue (probably after it has been played)
                 self.removeFirst = function() {
-                    console.log("there is " + self.queue.length + " items in the queue")
                     self.queue.shift();
-                    console.log("now there is " + self.queue.length + " items in the queue")
                     self.updateQueueStatusDisplay();
                 }
                 self.startQueue = function() {
@@ -108,12 +109,10 @@
                 self.processQueue = function() {
                     if(self.queue.length > 0) {
                         if(self.status == "running") {
-
-                            console.log(self.queue[0]);
                             self.queue[0].start();
                         }
                     } else {
-                        self.stopQueue();
+                        self.stopQueue(); // stop if we've run out of animations
                     }
                 }
                 self.updateQueueStatusDisplay = function() {
@@ -124,7 +123,7 @@
                     }
                     $(".queue-display").html(queueHtml);
                 }
-                self.updateQueueStatusDisplay();
+                self.updateQueueStatusDisplay(); // show status when page loads
             }
 
             var animation = function(settings) {
@@ -147,6 +146,7 @@
                 self.step = function() {
                     //console.log("in step " + self.settings.currentSpriteIndex)
                     if(self.settings.currentSpriteIndex > self.settings.sprites.length) {
+                        // if we're out of sprites in the animation then stop the animation
                         self.displaySprite(self.settings.spriteSheetSettings.defaultSprite);
                         self.stop();
                         return;
